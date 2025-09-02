@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>VETI ICT Department Portal</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f7fa;
+    }
+    header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+    #menuToggle {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 24px;
+      cursor: pointer;
+      color: white;
+    }
+    #sidebar {
+      height: 100%;
+      width: 250px;
+      position: fixed;
+      top: 0;
+      left: -250px; /* Hidden initially */
+      background: #004a99;
+      overflow-x: hidden;
+      transition: left 0.3s;
+      padding-top: 60px;
+    }
+    #sidebar.show {
+      left: 0; /* Show sidebar */
+    }
+    #sidebar a {
+      padding: 10px 20px;
+      text-decoration: none;
+      font-size: 18px;
+      color: white;
+      display: block;
+      transition: 0.2s;
+    }
+    #sidebar a:hover {
+      background: #0066cc;
+    }
+    .content {
+      margin: 20px;
+      margin-left: 0;
+      transition: margin-left 0.3s;
+    }
+    .content.shift {
+      margin-left: 250px; /* Shift content when sidebar is visible */
+    }
+    .hidden { display: none; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+    }
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+    th, td {
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+    input, select {
+      padding: 6px;
+      margin: 5px;
+      width: 90%;
+    }
+    .btn {
+      background: #007bff;
+      color: white;
+      padding: 6px 10px;
+      border: none;
+      cursor: pointer;
+      margin: 2px;
+    }
+    .btn:hover {
+      background: #0056b3;
+    }
+    #loginPage {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #loginBox {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="loginPage">
+    <div id="loginBox">
+      <h2>VETI ICT Department</h2>
+      <p>Please login</p>
+      <input type="text" id="username" placeholder="Username"><br>
+      <input type="password" id="password" placeholder="Password"><br>
+      <button class="btn" onclick="login()">Login</button>
+      <p id="loginError" style="color:red;"></p>
+    </div>
+  </div>
+
+  <div id="mainPage" class="hidden">
+    <header>
+      <span id="menuToggle">&#9776;</span>
+      <h1>VETI ICT Department Portal</h1>
+    </header>
+
+    <div id="sidebar">
+      <a href="#" onclick="showSection('diploma')">Diploma</a>
+      <a href="#" onclick="showSection('certificate')">Certificate</a>
+      <a href="#" onclick="showSection('artisan')">Artisan</a>
+      <a href="#" onclick="logout()">Logout</a>
+    </div>
+
+    <div class="content">
+      <div id="diploma" class="section hidden"></div>
+      <div id="certificate" class="section hidden"></div>
+      <div id="artisan" class="section hidden"></div>
+    </div>
+  </div>
+
+  <script>
+    const validUser = "VETI";
+    const validPass = "ICT";
+
+    let students = {
+      diploma: [],
+      certificate: [],
+      artisan: []
+    };
+
+    function login() {
+      const user = document.getElementById("username").value;
+      const pass = document.getElementById("password").value;
+      if (user === validUser && pass === validPass) {
+        document.getElementById("loginPage").style.display = "none";
+        document.getElementById("mainPage").classList.remove("hidden");
+      } else {
+        document.getElementById("loginError").innerText = "Invalid login details";
+      }
+    }
+
+    function logout() {
+      location.reload();
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById("sidebar");
+      const content = document.querySelector('.content');
+      sidebar.classList.toggle('show');
+      content.classList.toggle('shift');
+    }
+    document.getElementById("menuToggle").onclick = toggleSidebar;
+
+    function showSection(id) {
+      document.querySelectorAll('.section').forEach(sec => sec.classList.add('hidden'));
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById("sidebar").classList.remove('show'); // Hide sidebar after selecting
+      loadSection(id);
+    }
+
+    function loadSection(id) {
+      document.getElementById(id).innerHTML = createSectionHTML(id);
+      displayStudents(id);
+    }
+
+    function createSectionHTML(id) {
+      return `
+        <h2>${id.charAt(0).toUpperCase() + id.slice(1)} Students</h2>
+        <p>Total Students: <span id="${id}Count">0</span></p>
+        <form id="${id}Form" onsubmit="return addStudent(event, '${id}')">
+          <input type="text" placeholder="Full Name" required><br>
+          <input type="text" placeholder="Admission No." required><br>
+          <input type="text" placeholder="Student Tel No." required><br>
+          <input type="text" placeholder="Parent Tel No." required><br>
+          <select required>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select><br>
+          <select required>
+            <option value="">Select Year</option>
+            ${Array.from({length: 3}, (_, i) => `<option>Year ${i + 1}</option>`).join('')}
+          </select><br>
+          <select required>
+            <option value="">Select Semester</option>
+            ${Array.from({length: 10}, (_, i) => `<option>Semester ${i + 1}</option>`).join('')}
+          </select><br>
+          <input type="text" placeholder="County"><br>
+          <input type="text" placeholder="Sub-County"><br>
+          <button class="btn" type="submit">Add Student</button>
+        </form>
+        <input type="text" placeholder="Search..." class="searchBox" oninput="searchStudents('${id}', this.value)">
+        <table id="${id}Table">
+          <thead>
+            <tr>
+              <th>#</th><th>Full Name</th><th>Adm No.</th>
+              <th>Tel</th><th>Parent Tel</th><th>Gender</th>
+              <th>Year</th><th>Semester</th><th>County</th><th>Sub-County</th><th>Action</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      `;
+    }
+
+    function addStudent(event, section) {
+      event.preventDefault();
+      const form = event.target;
+      const newStudent = {
+        fullName: form[0].value,
+        admissionNo: form[1].value,
+        studentTel: form[2].value,
+        parentTel: form[3].value,
+        gender: form[4].value,
+        year: form[5].value,
+        semester: form[6].value,
+        county: form[7].value,
+        subCounty: form[8].value,
+      };
+      students[section].push(newStudent);
+      form.reset();
+      displayStudents(section);
+    }
+
+    function displayStudents(section) {
+      const tbody = document.getElementById(`${section}Table`).querySelector('tbody');
+      const countElement = document.getElementById(`${section}Count`);
+      tbody.innerHTML = '';
+      students[section].forEach((student, index) => {
+        const row = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${student.fullName}</td>
+            <td>${student.admissionNo}</td>
+            <td>${student.studentTel}</td>
+            <td>${student.parentTel}</td>
+            <td>${student.gender}</td>
+            <td>${student.year}</td>
+            <td>${student.semester}</td>
+            <td>${student.county}</td>
+            <td>${student.subCounty}</td>
+            <td><button class="btn" onclick="deleteStudent('${section}', ${index})">Delete</button></td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+      });
+      countElement.innerText = students[section].length; // Update student count
+    }
+
+    function deleteStudent(section, index) {
+      students[section].splice(index, 1);
+      displayStudents(section);
+    }
+
+    function searchStudents(section, query) {
+      const filteredStudents = students[section].filter(student =>
+        student.fullName.toLowerCase().includes(query.toLowerCase())
+      );
+      const tbody = document.getElementById(`${section}Table`).querySelector('tbody');
+      tbody.innerHTML = '';
+      filteredStudents.forEach((student, index) => {
+        const row = `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${student.fullName}</td>
+            <td>${student.admissionNo}</td>
+            <td>${student.studentTel}</td>
+            <td>${student.parentTel}</td>
+            <td>${student.gender}</td>
+            <td>${student.year}</td>
+            <td>${student.semester}</td>
+            <td>${student.county}</td>
+            <td>${student.subCounty}</td>
+            <td><button class="btn" onclick="deleteStudent('${section}', ${index})">Delete</button></td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML('beforeend', row);
+      });
+    }
+
+    // Initialize sections
+    showSection('diploma'); // Show diploma section on load
+  </script>
+</body>
+</html>
